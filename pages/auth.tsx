@@ -1,6 +1,8 @@
 /**Import a compenent that was developed in the apps 'components' folder */
+import axios from "axios";
 import Input from "@/components/input";
 import { useCallback, useState } from "react";
+import { signIn } from 'next-auth/react';
 
 const Auth = () => {
     const [email, setEmail] = useState('');
@@ -8,10 +10,38 @@ const Auth = () => {
     const [password, setPassword] = useState('');
 
 //Create a varient toggle method in order to switch between 'Sign in' and 'Sign Up' 
-const [variant, setVariant] = useState('');
+const [variant, setVariant] = useState('sign up');
 const toggleVariant = useCallback(() =>{
     setVariant((currentVariant) => currentVariant == 'sign in' ? 'sign up': 'sign in');
-},[])
+},[]);
+
+// Create function to register user
+const register = useCallback(async() => {
+    try{
+        await axios.post('/api/register', {
+            email,
+            name,
+            password
+        })
+    } catch(error) {
+        console.log(error);
+    }
+}, [email, name, password]);
+
+// Create function to sign in the user
+const login = useCallback( async () => {
+    try{
+        await signIn('credentials', {
+            email,
+            password,
+            redirect: false,
+            callbackUrl: '/'
+        });
+    } catch(error) {
+        console.log(error);
+    }
+
+}, [email, password]);
 
     return (
         /** 1. Let an image represent the background of the authentication page 
@@ -51,8 +81,8 @@ const toggleVariant = useCallback(() =>{
                                 value={password}
                             />
                         </div>
-                        <button className="bg-red-600 py-3 text-white rounded-md w-full mt-10 hover:bg-red-700 transition">
-                            {variant == 'sign in' ? 'Sign in': 'Sign Up' }
+                        <button onClick={variant == 'sign in' ? login : register } className="bg-red-600 py-3 text-white rounded-md w-full mt-10 hover:bg-red-700 transition">
+                            {variant == 'sign in' ? 'Sign in': 'Sign up' }
                         </button>
                         <p className="text-neutral-500 mt-12">
                             {variant == 'sign in' ? 'New to Netflix?' : 'Already have an account?'}
