@@ -3,30 +3,19 @@ import axios from "axios";
 import Input from "@/components/input";
 import { useCallback, useState } from "react";
 import { signIn } from 'next-auth/react';
+import { useRouter } from "next/router";
 
 const Auth = () => {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
 
 //Create a varient toggle method in order to switch between 'Sign in' and 'Sign Up' 
-const [variant, setVariant] = useState('sign up');
+const [variant, setVariant] = useState('sign in');
 const toggleVariant = useCallback(() =>{
     setVariant((currentVariant) => currentVariant == 'sign in' ? 'sign up': 'sign in');
 },[]);
-
-// Create function to register user
-const register = useCallback(async() => {
-    try{
-        await axios.post('/api/register', {
-            email,
-            name,
-            password
-        })
-    } catch(error) {
-        console.log(error);
-    }
-}, [email, name, password]);
 
 // Create function to sign in the user
 const login = useCallback( async () => {
@@ -37,11 +26,30 @@ const login = useCallback( async () => {
             redirect: false,
             callbackUrl: '/'
         });
+        
+        router.push('/')
     } catch(error) {
         console.log(error);
     }
 
-}, [email, password]);
+}, [email, password, router]);
+
+// Create function to register user
+const register = useCallback(async() => {
+    try{
+        await axios.post('/api/register', {
+            email,
+            name,
+            password
+        });
+        
+        //After registeringthe user log them in automatically by calling the login fuction
+        login();
+    } catch(error) {
+        console.log(error);
+    }
+}, [email, name, password, login]);
+
 
     return (
         /** 1. Let an image represent the background of the authentication page 
