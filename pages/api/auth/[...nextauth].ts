@@ -1,13 +1,27 @@
 //Input NextAuth in order to add functionality to out authentication page
-import NextAuth from "next-auth/next";
-import Credentials from "next-auth/providers/credentials";
-import Email from "next-auth/providers/email";
+import NextAuth, { AuthOptions } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcrypt';
+
+import GithubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+
+
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
 
 import prismadb from '@/lib/prismadb';
 
-export default NextAuth({
+// Add all the providers that will authenticate users during sign in/login and sign up/register
+export const authOptions: AuthOptions = {
     providers: [
+        GithubProvider({
+            clientId: process.env.GITHUB_ID || '',
+            clientSecret: process.env.GITHUB_SECRET || ''
+        }),
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || '',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+        }),
         Credentials({
             id: 'credentials',
             name: 'Credentials',
@@ -55,9 +69,10 @@ export default NextAuth({
         })
     ],
     pages: {
-        signIn: '/auth',
+        signIn: '/auth'
     },
-    debug: process.env.NODE_env == 'development',  
+    debug: process.env.NODE_env == 'development',
+    adapter: PrismaAdapter(prismadb),  
     session: {
         strategy: 'jwt'
     },
@@ -65,4 +80,6 @@ export default NextAuth({
         secret: process.env.NEXTAUTH_JWT_SECRET,   
     },
     secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+export default NextAuth(authOptions);
